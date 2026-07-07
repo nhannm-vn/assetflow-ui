@@ -14,6 +14,16 @@ export function useAssetsQuery(filters: AssetFilter) {
   });
 }
 
+// AssetsController.GetById — dùng cho màn xem chi tiết 1 tài sản (mở từ
+// bảng danh sách), lấy đúng bản ghi mới nhất từ server.
+export function useAssetByIdQuery(id: number | null) {
+  return useQuery({
+    queryKey: qk.asset(id ?? 0),
+    queryFn: () => assetsApi.getById(id as number),
+    enabled: id !== null,
+  });
+}
+
 export function useCreateAsset() {
   const qc = useQueryClient();
   return useMutation({
@@ -54,8 +64,7 @@ export function useRemoveAsset() {
 export function useChangeAssetStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: number; status: AssetStatus }) =>
-      assetsApi.changeStatus(id, status),
+    mutationFn: ({ id, status }: { id: number; status: AssetStatus }) => assetsApi.changeStatus(id, status),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["assets"] });
       toast.success("Đã cập nhật trạng thái");

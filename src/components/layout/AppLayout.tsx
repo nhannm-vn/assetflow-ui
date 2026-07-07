@@ -13,7 +13,7 @@ export function AppLayout() {
 
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="absolute inset-0 bg-ink-950/50" onClick={() => setMobileOpen(false)} />
+          <div className="absolute inset-0 bg-slate-950/50" onClick={() => setMobileOpen(false)} />
           <div className="relative h-full w-64 [&>aside]:flex">
             <Sidebar />
             <button
@@ -28,11 +28,11 @@ export function AppLayout() {
       )}
 
       <div className="flex min-h-screen flex-1 flex-col">
-        <div className="flex items-center gap-3 border-b border-ink-100 bg-white px-4 py-3 lg:hidden">
-          <button onClick={() => setMobileOpen(true)} className="text-ink-600" type="button">
+        <div className="flex items-center gap-3 border-b border-slate-100 bg-white px-4 py-3 lg:hidden">
+          <button onClick={() => setMobileOpen(true)} className="text-slate-600" type="button">
             <Menu size={20} />
           </button>
-          <p className="font-display text-base font-medium tracking-tight text-ink-900">AssetHub</p>
+          <p className="text-base font-medium tracking-tight text-slate-900">AssetHub</p>
         </div>
         <Topbar />
         <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">

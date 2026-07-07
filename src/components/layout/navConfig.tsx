@@ -63,10 +63,15 @@ export const NAV_SECTIONS: NavSection[] = [
     title: "Quy trình duyệt",
     roles: ["ADMIN"],
     items: [
-      { to: "/workflows", label: "Quy trình", icon: Workflow, roles: ["ADMIN"] },
-      { to: "/approval-roles", label: "Vai trò duyệt", icon: ShieldCheck, roles: ["ADMIN"] },
-      { to: "/department-workflows", label: "Gán quy trình", icon: GitBranch, roles: ["ADMIN"] },
-      { to: "/user-approval-roles", label: "Phân quyền duyệt", icon: UserCog, roles: ["ADMIN"] },
+      { to: "/workflows", label: "Quy trình duyệt", icon: Workflow, roles: ["ADMIN"] },
+      { to: "/approval-roles", label: "Vai trò duyệt (định nghĩa)", icon: ShieldCheck, roles: ["ADMIN"] },
+      {
+        to: "/department-workflows",
+        label: "Gán quy trình cho phòng ban",
+        icon: GitBranch,
+        roles: ["ADMIN"],
+      },
+      { to: "/user-approval-roles", label: "Gán vai trò duyệt cho user", icon: UserCog, roles: ["ADMIN"] },
     ],
   },
   {

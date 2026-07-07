@@ -3,14 +3,15 @@ import { toast } from "sonner";
 
 interface CrudApi<TResponse, TCreate, TUpdate> {
   getAll: () => Promise<TResponse[]>;
+  getById: (id: number) => Promise<TResponse>;
   create: (payload: TCreate) => Promise<TResponse>;
   update: (id: number, payload: TUpdate) => Promise<TResponse>;
   remove: (id: number) => Promise<boolean>;
 }
 
-/** Sinh bộ hook useList/useCreate/useUpdate/useRemove cho các resource danh
- * mục đơn giản (categories, locations, suppliers, departments, workflows,
- * approval roles) — tránh lặp lại boilerplate useQuery/useMutation. */
+/** Sinh bộ hook useList/useById/useCreate/useUpdate/useRemove cho các
+ * resource danh mục đơn giản (categories, locations, suppliers, departments,
+ * workflows, approval roles) — tránh lặp lại boilerplate useQuery/useMutation. */
 export function createCrudHooks<TResponse, TCreate, TUpdate = TCreate>(
   queryKey: QueryKey,
   api: CrudApi<TResponse, TCreate, TUpdate>,
@@ -18,6 +19,16 @@ export function createCrudHooks<TResponse, TCreate, TUpdate = TCreate>(
 ) {
   function useList() {
     return useQuery({ queryKey, queryFn: api.getAll });
+  }
+
+  // Lấy đúng bản ghi mới nhất từ server khi mở form sửa, thay vì chỉ tin vào
+  // dữ liệu đã cache trong danh sách (có thể vừa được người khác cập nhật).
+  function useById(id: number | null) {
+    return useQuery({
+      queryKey: [...queryKey, id ?? 0],
+      queryFn: () => api.getById(id as number),
+      enabled: id !== null,
+    });
   }
 
   function useCreate() {
@@ -56,5 +67,5 @@ export function createCrudHooks<TResponse, TCreate, TUpdate = TCreate>(
     });
   }
 
-  return { useList, useCreate, useUpdate, useRemove };
+  return { useList, useById, useCreate, useUpdate, useRemove };
 }

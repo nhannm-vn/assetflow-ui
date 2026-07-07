@@ -14,7 +14,11 @@ export default function ReportsPage() {
   const [toDate, setToDate] = useState("");
   const [enabled, setEnabled] = useState(false);
 
-  const { data: rows, isLoading, refetch } = useAssignmentReportQuery(fromDate || undefined, toDate || undefined, enabled);
+  const {
+    data: rows,
+    isLoading,
+    refetch,
+  } = useAssignmentReportQuery(fromDate || undefined, toDate || undefined, enabled);
 
   function handleSearch(e: FormEvent) {
     e.preventDefault();
@@ -27,12 +31,28 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Báo cáo" title="Báo cáo bàn giao tài sản" description="Thống kê bàn giao tài sản theo khoảng thời gian." />
+      <PageHeader
+        eyebrow="Báo cáo"
+        title="Báo cáo bàn giao tài sản"
+        description="Thống kê bàn giao tài sản theo khoảng thời gian."
+      />
 
       <Card className="mb-5">
         <form onSubmit={handleSearch} className="flex flex-wrap items-end gap-3">
-          <TextField label="Từ ngày" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="w-44" />
-          <TextField label="Đến ngày" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="w-44" />
+          <TextField
+            label="Từ ngày"
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="w-44"
+          />
+          <TextField
+            label="Đến ngày"
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="w-44"
+          />
           <Button type="submit" loading={isLoading}>
             <Search size={15} /> Xem báo cáo
           </Button>
@@ -60,10 +80,10 @@ export default function ReportsPage() {
                 const meta = statusMeta(ASSIGNMENT_STATUS_META, a.status);
                 return (
                   <tr key={a.id}>
-                    <td className="font-medium text-ink-800">{a.assetName}</td>
-                    <td className="text-ink-500">{a.userName}</td>
-                    <td className="text-ink-500">{formatDate(a.assignedDate)}</td>
-                    <td className="text-ink-500">{formatDate(a.returnedDate)}</td>
+                    <td className="font-medium text-slate-800">{a.assetName}</td>
+                    <td className="text-slate-500">{a.userName}</td>
+                    <td className="text-slate-500">{formatDate(a.assignedDate)}</td>
+                    <td className="text-slate-500">{formatDate(a.returnedDate)}</td>
                     <td>
                       <Badge color={meta.color}>{meta.label}</Badge>
                     </td>

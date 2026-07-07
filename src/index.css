@@ -7,10 +7,10 @@
     font-family: "Inter", sans-serif;
   }
   body {
-    @apply text-ink-800 antialiased;
+    @apply text-slate-800 antialiased;
   }
   ::selection {
-    @apply bg-brass-200 text-ink-900;
+    @apply bg-indigo-200 text-slate-900;
   }
   *:focus-visible {
     outline: none;
@@ -47,13 +47,13 @@
   }
 }
 
-/* thanh cuộn mảnh, hợp tông ink */
+/* thanh cuộn mảnh, hợp tông slate */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #aeb9c6;
+  background: #cbd5e1;
   border-radius: 8px;
 }
 ::-webkit-scrollbar-track {

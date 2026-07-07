@@ -125,21 +125,21 @@ export default function UserApprovalRolesPage() {
             <Tbody>
               {items.map((it) => (
                 <tr key={it.id}>
-                  <td className="font-medium text-ink-800">{it.userName}</td>
+                  <td className="font-medium text-slate-800">{it.userName}</td>
                   <td>{it.approvalRoleName}</td>
-                  <td className="text-ink-500">{it.departmentName || "Tất cả"}</td>
+                  <td className="text-slate-500">{it.departmentName || "Tất cả"}</td>
                   <td>
                     <div className="flex justify-end gap-1">
                       <button
                         onClick={() => openEdit(it)}
-                        className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
+                        className="rounded-md p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                         type="button"
                       >
                         <Pencil size={15} />
                       </button>
                       <button
                         onClick={() => setDeleteTarget(it)}
-                        className="rounded-md p-1.5 text-ink-400 hover:bg-clay-50 hover:text-clay-500"
+                        className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"
                         type="button"
                       >
                         <Trash2 size={15} />
@@ -183,7 +183,12 @@ export default function UserApprovalRolesPage() {
               </option>
             ))}
           </SelectField>
-          <SelectField label="Vai trò duyệt" required error={errors.approvalRoleId?.message} {...register("approvalRoleId")}>
+          <SelectField
+            label="Vai trò duyệt"
+            required
+            error={errors.approvalRoleId?.message}
+            {...register("approvalRoleId")}
+          >
             <option value="">Chọn vai trò…</option>
             {roles.map((r) => (
               <option key={r.id} value={r.id}>
@@ -191,7 +196,11 @@ export default function UserApprovalRolesPage() {
               </option>
             ))}
           </SelectField>
-          <SelectField label="Phòng ban (tuỳ chọn)" hint="Bỏ trống nếu áp dụng cho mọi phòng ban" {...register("departmentId")}>
+          <SelectField
+            label="Phòng ban (tuỳ chọn)"
+            hint="Bỏ trống nếu áp dụng cho mọi phòng ban"
+            {...register("departmentId")}
+          >
             <option value="">Tất cả phòng ban</option>
             {departments.map((d) => (
               <option key={d.id} value={d.id}>

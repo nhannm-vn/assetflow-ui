@@ -85,12 +85,12 @@ export default function ApprovalsPage() {
                 const meta = statusMeta(ASSET_REQUEST_STATUS_META, r.status);
                 return (
                   <tr key={r.requestId}>
-                    <td className="font-medium text-ink-800">{r.assetName}</td>
-                    <td className="text-ink-500">{r.requesterName}</td>
+                    <td className="font-medium text-slate-800">{r.assetName}</td>
+                    <td className="text-slate-500">{r.requesterName}</td>
                     <td>
                       <Badge color={meta.color}>Bước {r.currentStep}</Badge>
                     </td>
-                    <td className="text-ink-500">{formatDateTime(r.createdAt)}</td>
+                    <td className="text-slate-500">{formatDateTime(r.createdAt)}</td>
                     <td>
                       <div className="flex justify-end gap-2">
                         <Button size="sm" variant="danger" onClick={() => openAction("reject", r)}>
@@ -129,11 +129,15 @@ export default function ApprovalsPage() {
         }
       >
         <form onSubmit={onSubmit} className="flex flex-col gap-3.5">
-          <p className="text-sm text-ink-600">
+          <p className="text-sm text-slate-600">
             Tài sản <span className="font-semibold">{action?.request.assetName}</span> — yêu cầu bởi{" "}
             <span className="font-semibold">{action?.request.requesterName}</span>
           </p>
-          <TextAreaField label="Ghi chú (tuỳ chọn)" placeholder="Lý do hoặc ghi chú thêm…" {...register("comment")} />
+          <TextAreaField
+            label="Ghi chú (tuỳ chọn)"
+            placeholder="Lý do hoặc ghi chú thêm…"
+            {...register("comment")}
+          />
         </form>
       </Modal>
     </div>

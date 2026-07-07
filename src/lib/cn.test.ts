@@ -7,7 +7,8 @@ describe("cn()", () => {
   });
 
   it("drops falsy values", () => {
-    expect(cn("a", undefined, false, null, "c")).toBe("a c");
+    const isFalse = false;
+    expect(cn("a", isFalse && "b", undefined, null, "c")).toBe("a c");
   });
 
   it("resolves conflicting Tailwind utilities, keeping the last one", () => {

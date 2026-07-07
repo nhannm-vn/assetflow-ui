@@ -8,10 +8,11 @@ const badgeVariants = cva(
   {
     variants: {
       color: {
-        moss: "bg-moss-50 text-moss-600 ring-moss-100",
-        brass: "bg-brass-50 text-brass-700 ring-brass-100",
-        clay: "bg-clay-50 text-clay-600 ring-clay-100",
-        ink: "bg-ink-50 text-ink-700 ring-ink-100",
+        emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100",
+        amber: "bg-amber-50 text-amber-700 ring-amber-100",
+        indigo: "bg-indigo-50 text-indigo-700 ring-indigo-100",
+        red: "bg-red-50 text-red-600 ring-red-100",
+        slate: "bg-slate-100 text-slate-700 ring-slate-200",
         gray: "bg-gray-100 text-gray-600 ring-gray-200",
       } satisfies Record<BadgeColor, string>,
     },

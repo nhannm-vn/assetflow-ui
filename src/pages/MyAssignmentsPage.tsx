@@ -22,7 +22,11 @@ export default function MyAssignmentsPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Bàn giao" title="Tài sản đang mượn" description="Danh sách tài sản đã được bàn giao cho bạn." />
+      <PageHeader
+        eyebrow="Bàn giao"
+        title="Tài sản đang mượn"
+        description="Danh sách tài sản đã được bàn giao cho bạn."
+      />
 
       <Card padded={false} className="overflow-hidden">
         {isLoading ? (
@@ -52,9 +56,9 @@ export default function MyAssignmentsPage() {
                 const meta = statusMeta(ASSIGNMENT_STATUS_META, a.status);
                 return (
                   <tr key={a.id}>
-                    <td className="font-medium text-ink-800">{a.assetName}</td>
-                    <td className="text-ink-500">{formatDate(a.assignedDate)}</td>
-                    <td className="text-ink-500">{formatDate(a.returnedDate)}</td>
+                    <td className="font-medium text-slate-800">{a.assetName}</td>
+                    <td className="text-slate-500">{formatDate(a.assignedDate)}</td>
+                    <td className="text-slate-500">{formatDate(a.returnedDate)}</td>
                     <td>
                       <Badge color={meta.color}>{meta.label}</Badge>
                     </td>

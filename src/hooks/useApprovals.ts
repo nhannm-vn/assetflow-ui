@@ -16,11 +16,21 @@ export function useAdminRequestsQuery() {
   return useQuery({ queryKey: qk.adminRequests, queryFn: approvalsApi.getAllRequestsAdmin });
 }
 
+export function useRequestDetailAdminQuery(requestId: number | null) {
+  return useQuery({
+    queryKey: qk.requestDetailAdmin(requestId ?? 0),
+    queryFn: () => approvalsApi.getRequestDetailAdmin(requestId as number),
+    enabled: requestId !== null,
+  });
+}
+
 export function useRequestHistoryQuery(requestId: number | null, admin = false) {
   return useQuery({
     queryKey: qk.requestHistory(requestId ?? 0),
     queryFn: () =>
-      admin ? approvalsApi.getHistoryAdmin(requestId as number) : approvalsApi.getHistory(requestId as number),
+      admin
+        ? approvalsApi.getHistoryAdmin(requestId as number)
+        : approvalsApi.getHistory(requestId as number),
     enabled: requestId !== null,
   });
 }

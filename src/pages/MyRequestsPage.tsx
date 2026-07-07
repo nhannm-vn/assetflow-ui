@@ -5,7 +5,15 @@ import { Badge } from "@/components/ui/Badge";
 import { AssetTag } from "@/components/ui/AssetTag";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { PageHeader, Table, Thead, Tbody, TableSkeleton, EmptyState, Spinner } from "@/components/ui/DataDisplay";
+import {
+  PageHeader,
+  Table,
+  Thead,
+  Tbody,
+  TableSkeleton,
+  EmptyState,
+  Spinner,
+} from "@/components/ui/DataDisplay";
 import { useCancelAssetRequest, useMyRequestsQuery } from "@/hooks/useAssetRequests";
 import { useRequestHistoryQuery } from "@/hooks/useApprovals";
 import { useAssetsQuery } from "@/hooks/useAssets";
@@ -15,13 +23,23 @@ import type { AssetRequestResponse } from "@/types/dto";
 
 export default function MyRequestsPage() {
   const { data: requests = [], isLoading } = useMyRequestsQuery();
-  const { data: assetsPage } = useAssetsQuery({ keyword: "", status: "", categoryId: "", locationId: "", page: 1, pageSize: 1000 });
+  const { data: assetsPage } = useAssetsQuery({
+    keyword: "",
+    status: "",
+    categoryId: "",
+    locationId: "",
+    page: 1,
+    pageSize: 1000,
+  });
   const assets = assetsPage?.data ?? [];
   const cancelMutation = useCancelAssetRequest();
 
   const [cancelTarget, setCancelTarget] = useState<AssetRequestResponse | null>(null);
   const [historyTarget, setHistoryTarget] = useState<AssetRequestResponse | null>(null);
-  const { data: history = [], isLoading: historyLoading } = useRequestHistoryQuery(historyTarget?.id ?? null, false);
+  const { data: history = [], isLoading: historyLoading } = useRequestHistoryQuery(
+    historyTarget?.id ?? null,
+    false
+  );
 
   function handleCancel() {
     if (!cancelTarget) return;
@@ -49,7 +67,11 @@ export default function MyRequestsPage() {
             <TableSkeleton rows={4} cols={5} />
           </Table>
         ) : requests.length === 0 ? (
-          <EmptyState title="Chưa có yêu cầu nào" description="Vào trang Tài sản để gửi yêu cầu mượn tài sản đầu tiên." icon={ClipboardList} />
+          <EmptyState
+            title="Chưa có yêu cầu nào"
+            description="Vào trang Tài sản để gửi yêu cầu mượn tài sản đầu tiên."
+            icon={ClipboardList}
+          />
         ) : (
           <Table>
             <Thead>
@@ -68,19 +90,19 @@ export default function MyRequestsPage() {
                     <td>
                       <div className="flex items-center gap-2">
                         <AssetTag>{asset?.assetCode || `#${r.assetId}`}</AssetTag>
-                        <span className="font-medium text-ink-800">{asset?.name}</span>
+                        <span className="font-medium text-slate-800">{asset?.name}</span>
                       </div>
                     </td>
-                    <td className="text-ink-500">Bước {r.currentStep}</td>
+                    <td className="text-slate-500">Bước {r.currentStep}</td>
                     <td>
                       <Badge color={meta.color}>{meta.label}</Badge>
                     </td>
-                    <td className="text-ink-500">{formatDateTime(r.createdAt)}</td>
+                    <td className="text-slate-500">{formatDateTime(r.createdAt)}</td>
                     <td>
                       <div className="flex justify-end gap-1">
                         <button
                           onClick={() => setHistoryTarget(r)}
-                          className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
+                          className="rounded-md p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                           title="Lịch sử duyệt"
                           type="button"
                         >
@@ -89,7 +111,7 @@ export default function MyRequestsPage() {
                         {r.status === "PENDING" && (
                           <button
                             onClick={() => setCancelTarget(r)}
-                            className="rounded-md p-1.5 text-ink-400 hover:bg-clay-50 hover:text-clay-500"
+                            className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"
                             title="Hủy yêu cầu"
                             type="button"
                           >
@@ -106,7 +128,11 @@ export default function MyRequestsPage() {
         )}
       </Card>
 
-      <Modal open={!!historyTarget} onClose={() => setHistoryTarget(null)} title={`Lịch sử duyệt — Yêu cầu #${historyTarget?.id ?? ""}`}>
+      <Modal
+        open={!!historyTarget}
+        onClose={() => setHistoryTarget(null)}
+        title={`Lịch sử duyệt — Yêu cầu #${historyTarget?.id ?? ""}`}
+      >
         {historyLoading ? (
           <Spinner />
         ) : history.length === 0 ? (
@@ -116,13 +142,13 @@ export default function MyRequestsPage() {
             {history.map((h, idx) => {
               const meta = statusMeta(APPROVAL_STATUS_META, h.status);
               return (
-                <li key={idx} className="rounded-lg border border-ink-100 p-3">
+                <li key={idx} className="rounded-lg border border-slate-100 p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-ink-800">Bước {h.stepOrder}</span>
+                    <span className="text-sm font-semibold text-slate-800">Bước {h.stepOrder}</span>
                     <Badge color={meta.color}>{meta.label}</Badge>
                   </div>
-                  {h.comment && <p className="mt-1 text-sm text-ink-500">"{h.comment}"</p>}
-                  <p className="mt-1 text-xs text-ink-400">{formatDateTime(h.createdAt)}</p>
+                  {h.comment && <p className="mt-1 text-sm text-slate-500">"{h.comment}"</p>}
+                  <p className="mt-1 text-xs text-slate-400">{formatDateTime(h.createdAt)}</p>
                 </li>
               );
             })}

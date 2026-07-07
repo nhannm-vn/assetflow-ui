@@ -23,8 +23,7 @@ export function useCreateUser() {
 export function useUpdateUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: UpdateUserRequest }) =>
-      usersApi.update(id, payload),
+    mutationFn: ({ id, payload }: { id: number; payload: UpdateUserRequest }) => usersApi.update(id, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: qk.users });
       toast.success("Cập nhật người dùng thành công");
@@ -50,6 +49,21 @@ export function useChangePassword() {
     mutationFn: ({ id, newPassword }: { id: number; newPassword: string }) =>
       usersApi.changePassword(id, newPassword),
     onSuccess: () => toast.success("Đã đổi mật khẩu"),
+    onError: (err: ApiError) => toast.error(err.message),
+  });
+}
+
+// UserController.AssignDepartment — endpoint riêng cho việc chuyển phòng ban
+// nhanh, tách biệt khỏi form sửa thông tin chung (UpdateUserRequest).
+export function useAssignUserDepartment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, departmentId }: { id: number; departmentId: number }) =>
+      usersApi.assignDepartment(id, departmentId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.users });
+      toast.success("Đã chuyển phòng ban");
+    },
     onError: (err: ApiError) => toast.error(err.message),
   });
 }

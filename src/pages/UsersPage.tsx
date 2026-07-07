@@ -1,22 +1,41 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Pencil, Trash2, KeyRound, Building2, Users as UsersIcon, Search } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  KeyRound,
+  Building2,
+  ShieldCheck,
+  Users as UsersIcon,
+  Search,
+} from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { TextField, SelectField, PlainInput } from "@/components/ui/FormField";
 import { PageHeader, Table, Thead, Tbody, TableSkeleton, EmptyState } from "@/components/ui/DataDisplay";
-import { useChangePassword, useCreateUser, useRemoveUser, useUpdateUser, useUsersQuery } from "@/hooks/useUsers";
+import { UserApprovalRolesModal } from "@/components/shared/UserApprovalRolesModal";
+import {
+  useChangePassword,
+  useAssignUserDepartment,
+  useCreateUser,
+  useRemoveUser,
+  useUpdateUser,
+  useUsersQuery,
+} from "@/hooks/useUsers";
 import { departmentHooks } from "@/hooks/useCatalog";
 import {
   createUserFormSchema,
   updateUserFormSchema,
   changePasswordFormSchema,
+  assignDepartmentFormSchema,
   type CreateUserFormValues,
   type UpdateUserFormValues,
   type ChangePasswordFormValues,
+  type AssignDepartmentFormValues,
 } from "@/schemas/user.schema";
 import type { UserResponse } from "@/types/dto";
 
@@ -28,16 +47,27 @@ export default function UsersPage() {
   const updateMutation = useUpdateUser();
   const removeMutation = useRemoveUser();
   const changePasswordMutation = useChangePassword();
+  const assignDepartmentMutation = useAssignUserDepartment();
 
   const [query, setQuery] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<UserResponse | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserResponse | null>(null);
   const [pwdTarget, setPwdTarget] = useState<UserResponse | null>(null);
+  const [deptTarget, setDeptTarget] = useState<UserResponse | null>(null);
+  const [rolesTarget, setRolesTarget] = useState<UserResponse | null>(null);
 
   const createForm = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserFormSchema),
-    defaultValues: { username: "", password: "", fullName: "", email: "", phone: "", roleId: "2", departmentId: "" },
+    defaultValues: {
+      username: "",
+      password: "",
+      fullName: "",
+      email: "",
+      phone: "",
+      roleId: "2",
+      departmentId: "",
+    },
   });
   const updateForm = useForm<UpdateUserFormValues>({
     resolver: zodResolver(updateUserFormSchema),
@@ -46,6 +76,10 @@ export default function UsersPage() {
   const pwdForm = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordFormSchema),
     defaultValues: { newPassword: "" },
+  });
+  const deptForm = useForm<AssignDepartmentFormValues>({
+    resolver: zodResolver(assignDepartmentFormSchema),
+    defaultValues: { departmentId: "" },
   });
 
   useEffect(() => {
@@ -57,7 +91,15 @@ export default function UsersPage() {
         departmentId: editing.departmentId ? String(editing.departmentId) : "",
       });
     } else if (formOpen && !editing) {
-      createForm.reset({ username: "", password: "", fullName: "", email: "", phone: "", roleId: "2", departmentId: "" });
+      createForm.reset({
+        username: "",
+        password: "",
+        fullName: "",
+        email: "",
+        phone: "",
+        roleId: "2",
+        departmentId: "",
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formOpen, editing]);
@@ -66,6 +108,12 @@ export default function UsersPage() {
     if (pwdTarget) pwdForm.reset({ newPassword: "" });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pwdTarget]);
+
+  useEffect(() => {
+    if (deptTarget)
+      deptForm.reset({ departmentId: deptTarget.departmentId ? String(deptTarget.departmentId) : "" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deptTarget]);
 
   function departmentName(id: number | null) {
     if (!id) return "—";
@@ -120,6 +168,14 @@ export default function UsersPage() {
     );
   });
 
+  const onSubmitDepartment = deptForm.handleSubmit((values) => {
+    if (!deptTarget) return;
+    assignDepartmentMutation.mutate(
+      { id: deptTarget.id, departmentId: Number(values.departmentId) },
+      { onSuccess: () => setDeptTarget(null) }
+    );
+  });
+
   function handleDelete() {
     if (!deleteTarget) return;
     removeMutation.mutate(deleteTarget.id, { onSuccess: () => setDeleteTarget(null) });
@@ -143,9 +199,9 @@ export default function UsersPage() {
       />
 
       <Card padded={false} className="overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-ink-100 px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
           <div className="relative w-full max-w-xs">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
             <PlainInput
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -153,7 +209,7 @@ export default function UsersPage() {
               className="h-9 pl-8"
             />
           </div>
-          <span className="ml-auto text-xs text-ink-400">{filtered.length} người dùng</span>
+          <span className="ml-auto text-xs text-slate-400">{filtered.length} người dùng</span>
         </div>
 
         {isLoading ? (
@@ -181,23 +237,54 @@ export default function UsersPage() {
             <Tbody>
               {filtered.map((u) => (
                 <tr key={u.id}>
-                  <td className="font-mono text-xs font-medium text-ink-700">{u.username}</td>
-                  <td className="font-medium text-ink-800">{u.fullName || "—"}</td>
-                  <td className="text-ink-500">{u.email || "—"}</td>
+                  <td className="font-mono text-xs font-medium text-slate-700">{u.username}</td>
+                  <td className="font-medium text-slate-800">{u.fullName || "—"}</td>
+                  <td className="text-slate-500">{u.email || "—"}</td>
                   <td>
-                    <span className="inline-flex items-center gap-1 text-ink-500">
+                    <span className="inline-flex items-center gap-1 text-slate-500">
                       <Building2 size={13} /> {departmentName(u.departmentId)}
                     </span>
                   </td>
                   <td>
                     <div className="flex justify-end gap-1">
-                      <button onClick={() => setPwdTarget(u)} title="Đổi mật khẩu" type="button" className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink-700">
+                      <button
+                        onClick={() => setRolesTarget(u)}
+                        title="Xem vai trò duyệt"
+                        type="button"
+                        className="rounded-md p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                      >
+                        <ShieldCheck size={15} />
+                      </button>
+                      <button
+                        onClick={() => setDeptTarget(u)}
+                        title="Chuyển phòng ban"
+                        type="button"
+                        className="rounded-md p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                      >
+                        <Building2 size={15} />
+                      </button>
+                      <button
+                        onClick={() => setPwdTarget(u)}
+                        title="Đổi mật khẩu"
+                        type="button"
+                        className="rounded-md p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                      >
                         <KeyRound size={15} />
                       </button>
-                      <button onClick={() => openEdit(u)} title="Sửa" type="button" className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink-700">
+                      <button
+                        onClick={() => openEdit(u)}
+                        title="Sửa"
+                        type="button"
+                        className="rounded-md p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                      >
                         <Pencil size={15} />
                       </button>
-                      <button onClick={() => setDeleteTarget(u)} title="Xóa" type="button" className="rounded-md p-1.5 text-ink-400 hover:bg-clay-50 hover:text-clay-500">
+                      <button
+                        onClick={() => setDeleteTarget(u)}
+                        title="Xóa"
+                        type="button"
+                        className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"
+                      >
                         <Trash2 size={15} />
                       </button>
                     </div>
@@ -231,7 +318,12 @@ export default function UsersPage() {
         {editing ? (
           <form onSubmit={onSubmitUpdate} className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <TextField label="Họ và tên" {...updateForm.register("fullName")} />
-            <TextField label="Email" type="email" error={updateForm.formState.errors.email?.message} {...updateForm.register("email")} />
+            <TextField
+              label="Email"
+              type="email"
+              error={updateForm.formState.errors.email?.message}
+              {...updateForm.register("email")}
+            />
             <TextField label="Số điện thoại" {...updateForm.register("phone")} />
             <SelectField label="Phòng ban" {...updateForm.register("departmentId")}>
               <option value="">Chưa gán</option>
@@ -244,10 +336,26 @@ export default function UsersPage() {
           </form>
         ) : (
           <form onSubmit={onSubmitCreate} className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-            <TextField label="Tên đăng nhập" required error={createForm.formState.errors.username?.message} {...createForm.register("username")} />
-            <TextField label="Mật khẩu" type="password" required error={createForm.formState.errors.password?.message} {...createForm.register("password")} />
+            <TextField
+              label="Tên đăng nhập"
+              required
+              error={createForm.formState.errors.username?.message}
+              {...createForm.register("username")}
+            />
+            <TextField
+              label="Mật khẩu"
+              type="password"
+              required
+              error={createForm.formState.errors.password?.message}
+              {...createForm.register("password")}
+            />
             <TextField label="Họ và tên" {...createForm.register("fullName")} />
-            <TextField label="Email" type="email" error={createForm.formState.errors.email?.message} {...createForm.register("email")} />
+            <TextField
+              label="Email"
+              type="email"
+              error={createForm.formState.errors.email?.message}
+              {...createForm.register("email")}
+            />
             <TextField label="Số điện thoại" {...createForm.register("phone")} />
             <SelectField label="Phòng ban" {...createForm.register("departmentId")}>
               <option value="">Chưa gán</option>
@@ -294,6 +402,44 @@ export default function UsersPage() {
           />
         </form>
       </Modal>
+
+      <Modal
+        open={!!deptTarget}
+        onClose={() => setDeptTarget(null)}
+        title={`Chuyển phòng ban — ${deptTarget?.username ?? ""}`}
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setDeptTarget(null)}>
+              Hủy
+            </Button>
+            <Button onClick={onSubmitDepartment} loading={assignDepartmentMutation.isPending}>
+              Xác nhận
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={onSubmitDepartment}>
+          <SelectField
+            label="Phòng ban"
+            required
+            error={deptForm.formState.errors.departmentId?.message}
+            {...deptForm.register("departmentId")}
+          >
+            <option value="">Chọn phòng ban…</option>
+            {departments.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </SelectField>
+        </form>
+      </Modal>
+
+      <UserApprovalRolesModal
+        userId={rolesTarget?.id ?? null}
+        userName={rolesTarget?.fullName || rolesTarget?.username || ""}
+        onClose={() => setRolesTarget(null)}
+      />
 
       <ConfirmDialog
         open={!!deleteTarget}

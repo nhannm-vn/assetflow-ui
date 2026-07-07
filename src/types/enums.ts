@@ -33,7 +33,7 @@ export const ApprovalStatus = {
 } as const;
 export type ApprovalStatus = (typeof ApprovalStatus)[keyof typeof ApprovalStatus];
 
-export type BadgeColor = "moss" | "brass" | "clay" | "ink" | "gray";
+export type BadgeColor = "emerald" | "amber" | "indigo" | "red" | "slate" | "gray";
 
 interface StatusMeta {
   label: string;
@@ -41,32 +41,32 @@ interface StatusMeta {
 }
 
 export const ASSET_STATUS_META: Record<AssetStatus, StatusMeta> = {
-  AVAILABLE: { label: "Sẵn sàng", color: "moss" },
-  RESERVED: { label: "Đã giữ chỗ", color: "brass" },
-  IN_USE: { label: "Đang sử dụng", color: "ink" },
-  MAINTENANCE: { label: "Bảo trì", color: "brass" },
+  AVAILABLE: { label: "Sẵn sàng", color: "emerald" },
+  RESERVED: { label: "Đã giữ chỗ", color: "amber" },
+  IN_USE: { label: "Đang sử dụng", color: "indigo" },
+  MAINTENANCE: { label: "Bảo trì", color: "amber" },
   RETIRED: { label: "Ngừng sử dụng", color: "gray" },
-  LOST: { label: "Thất lạc", color: "clay" },
-  DAMAGED: { label: "Hư hỏng", color: "clay" },
+  LOST: { label: "Thất lạc", color: "red" },
+  DAMAGED: { label: "Hư hỏng", color: "red" },
 };
 
 export const ASSET_REQUEST_STATUS_META: Record<AssetRequestStatus, StatusMeta> = {
-  PENDING: { label: "Chờ duyệt", color: "brass" },
-  APPROVED: { label: "Đã duyệt", color: "moss" },
-  REJECTED: { label: "Từ chối", color: "clay" },
+  PENDING: { label: "Chờ duyệt", color: "amber" },
+  APPROVED: { label: "Đã duyệt", color: "emerald" },
+  REJECTED: { label: "Từ chối", color: "red" },
   CANCELLED: { label: "Đã hủy", color: "gray" },
 };
 
 export const ASSIGNMENT_STATUS_META: Record<AssignmentStatus, StatusMeta> = {
-  ACTIVE: { label: "Đang dùng", color: "ink" },
-  RETURNED: { label: "Đã trả", color: "moss" },
-  OVERDUE: { label: "Quá hạn", color: "clay" },
+  ACTIVE: { label: "Đang dùng", color: "indigo" },
+  RETURNED: { label: "Đã trả", color: "emerald" },
+  OVERDUE: { label: "Quá hạn", color: "red" },
 };
 
 export const APPROVAL_STATUS_META: Record<ApprovalStatus, StatusMeta> = {
-  PENDING: { label: "Chờ duyệt", color: "brass" },
-  APPROVED: { label: "Đã duyệt", color: "moss" },
-  REJECTED: { label: "Từ chối", color: "clay" },
+  PENDING: { label: "Chờ duyệt", color: "amber" },
+  APPROVED: { label: "Đã duyệt", color: "emerald" },
+  REJECTED: { label: "Từ chối", color: "red" },
 };
 
 export function statusMeta<T extends string>(

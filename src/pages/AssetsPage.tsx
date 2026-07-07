@@ -1,31 +1,67 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Pencil, Trash2, Search, Boxes, ChevronLeft, ChevronRight, SendHorizonal, RefreshCcw } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Search,
+  Boxes,
+  ChevronLeft,
+  ChevronRight,
+  SendHorizonal,
+  RefreshCcw,
+} from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { AssetTag } from "@/components/ui/AssetTag";
 import { Modal } from "@/components/ui/Modal";
+import { AssetDetailModal } from "@/components/shared/AssetDetailModal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { TextField, SelectField, PlainInput, PlainSelect } from "@/components/ui/FormField";
 import { PageHeader, Table, Thead, Tbody, TableSkeleton, EmptyState } from "@/components/ui/DataDisplay";
-import { useAssetsQuery, useChangeAssetStatus, useCreateAsset, useRemoveAsset, useUpdateAsset } from "@/hooks/useAssets";
+import {
+  useAssetsQuery,
+  useChangeAssetStatus,
+  useCreateAsset,
+  useRemoveAsset,
+  useUpdateAsset,
+} from "@/hooks/useAssets";
 import { useCreateAssetRequest } from "@/hooks/useAssetRequests";
 import { categoryHooks, locationHooks, supplierHooks } from "@/hooks/useCatalog";
 import { useIsAdmin } from "@/store/authStore";
-import { assetFormSchema, assetRequestFormSchema, type AssetFormValues, type AssetRequestFormValues } from "@/schemas/asset.schema";
+import {
+  assetFormSchema,
+  assetRequestFormSchema,
+  type AssetFormValues,
+  type AssetRequestFormValues,
+} from "@/schemas/asset.schema";
 import { ASSET_STATUS_META, ASSET_STATUS_OPTIONS, statusMeta } from "@/types/enums";
 import type { AssetStatus } from "@/types/enums";
 import { formatCurrency } from "@/lib/format";
 import type { AssetFilter, AssetResponse } from "@/types/dto";
 
-const emptyForm: AssetFormValues = { assetCode: "", name: "", categoryId: "", locationId: "", supplierId: "", value: "" };
+const emptyForm: AssetFormValues = {
+  assetCode: "",
+  name: "",
+  categoryId: "",
+  locationId: "",
+  supplierId: "",
+  value: "",
+};
 
 export default function AssetsPage() {
   const isAdmin = useIsAdmin();
 
-  const [filters, setFilters] = useState<AssetFilter>({ keyword: "", status: "", categoryId: "", locationId: "", page: 1, pageSize: 10 });
+  const [filters, setFilters] = useState<AssetFilter>({
+    keyword: "",
+    status: "",
+    categoryId: "",
+    locationId: "",
+    page: 1,
+    pageSize: 10,
+  });
   const { data, isLoading, refetch } = useAssetsQuery(filters);
   const rows = data?.data ?? [];
   const total = data?.total ?? 0;
@@ -44,6 +80,7 @@ export default function AssetsPage() {
   const [editing, setEditing] = useState<AssetResponse | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AssetResponse | null>(null);
   const [requestTarget, setRequestTarget] = useState<AssetResponse | null>(null);
+  const [detailId, setDetailId] = useState<number | null>(null);
 
   const {
     register,
@@ -107,7 +144,10 @@ export default function AssetsPage() {
     if (editing) {
       updateAsset.mutate({ id: editing.id, payload }, { onSuccess: () => setFormOpen(false) });
     } else {
-      createAsset.mutate({ ...payload, assetCode: values.assetCode }, { onSuccess: () => setFormOpen(false) });
+      createAsset.mutate(
+        { ...payload, assetCode: values.assetCode },
+        { onSuccess: () => setFormOpen(false) }
+      );
     }
   });
 
@@ -146,9 +186,9 @@ export default function AssetsPage() {
       />
 
       <Card padded={false} className="overflow-hidden">
-        <div className="flex flex-wrap items-center gap-2.5 border-b border-ink-100 px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-100 px-4 py-3">
           <div className="relative w-full max-w-xs">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
             <PlainInput
               value={filters.keyword}
               onChange={(e) => setFilters((f) => ({ ...f, keyword: e.target.value, page: 1 }))}
@@ -158,8 +198,10 @@ export default function AssetsPage() {
           </div>
           <PlainSelect
             value={filters.status}
-            onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value as AssetStatus | "", page: 1 }))}
-            className="w-auto h-9"
+            onChange={(e) =>
+              setFilters((f) => ({ ...f, status: e.target.value as AssetStatus | "", page: 1 }))
+            }
+            className="h-9 w-auto"
           >
             <option value="">Tất cả trạng thái</option>
             {ASSET_STATUS_OPTIONS.map((s) => (
@@ -172,8 +214,14 @@ export default function AssetsPage() {
             <>
               <PlainSelect
                 value={filters.categoryId}
-                onChange={(e) => setFilters((f) => ({ ...f, categoryId: e.target.value ? Number(e.target.value) : "", page: 1 }))}
-                className="w-auto h-9"
+                onChange={(e) =>
+                  setFilters((f) => ({
+                    ...f,
+                    categoryId: e.target.value ? Number(e.target.value) : "",
+                    page: 1,
+                  }))
+                }
+                className="h-9 w-auto"
               >
                 <option value="">Tất cả loại</option>
                 {categories.map((c) => (
@@ -184,8 +232,14 @@ export default function AssetsPage() {
               </PlainSelect>
               <PlainSelect
                 value={filters.locationId}
-                onChange={(e) => setFilters((f) => ({ ...f, locationId: e.target.value ? Number(e.target.value) : "", page: 1 }))}
-                className="w-auto h-9"
+                onChange={(e) =>
+                  setFilters((f) => ({
+                    ...f,
+                    locationId: e.target.value ? Number(e.target.value) : "",
+                    page: 1,
+                  }))
+                }
+                className="h-9 w-auto"
               >
                 <option value="">Tất cả vị trí</option>
                 {locations.map((l) => (
@@ -196,7 +250,7 @@ export default function AssetsPage() {
               </PlainSelect>
             </>
           )}
-          <span className="ml-auto text-xs text-ink-400">{total} tài sản</span>
+          <span className="ml-auto text-xs text-slate-400">{total} tài sản</span>
         </div>
 
         {isLoading ? (
@@ -213,7 +267,11 @@ export default function AssetsPage() {
             <TableSkeleton rows={6} cols={isAdmin ? 7 : 5} />
           </Table>
         ) : rows.length === 0 ? (
-          <EmptyState title="Không tìm thấy tài sản" icon={Boxes} description="Thử thay đổi bộ lọc hoặc thêm tài sản mới." />
+          <EmptyState
+            title="Không tìm thấy tài sản"
+            icon={Boxes}
+            description="Thử thay đổi bộ lọc hoặc thêm tài sản mới."
+          />
         ) : (
           <Table>
             <Thead>
@@ -233,15 +291,25 @@ export default function AssetsPage() {
                     <td>
                       <AssetTag>{a.assetCode}</AssetTag>
                     </td>
-                    <td className="font-medium text-ink-800">{a.name}</td>
-                    {isAdmin && <td className="text-ink-500">{categoryName(a.categoryId)}</td>}
-                    {isAdmin && <td className="text-ink-500">{locationName(a.locationId)}</td>}
-                    <td className="text-ink-500">{formatCurrency(a.value)}</td>
+                    <td>
+                      <button
+                        onClick={() => setDetailId(a.id)}
+                        type="button"
+                        className="font-medium text-slate-800 hover:text-indigo-600 hover:underline"
+                      >
+                        {a.name}
+                      </button>
+                    </td>
+                    {isAdmin && <td className="text-slate-500">{categoryName(a.categoryId)}</td>}
+                    {isAdmin && <td className="text-slate-500">{locationName(a.locationId)}</td>}
+                    <td className="text-slate-500">{formatCurrency(a.value)}</td>
                     <td>
                       {isAdmin ? (
                         <PlainSelect
                           value={a.status}
-                          onChange={(e) => changeStatus.mutate({ id: a.id, status: e.target.value as AssetStatus })}
+                          onChange={(e) =>
+                            changeStatus.mutate({ id: a.id, status: e.target.value as AssetStatus })
+                          }
                           className="h-8 w-40 text-xs"
                         >
                           {ASSET_STATUS_OPTIONS.map((s) => (
@@ -258,15 +326,28 @@ export default function AssetsPage() {
                       <div className="flex justify-end gap-1">
                         {isAdmin ? (
                           <>
-                            <button onClick={() => openEdit(a)} type="button" className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink-700">
+                            <button
+                              onClick={() => openEdit(a)}
+                              type="button"
+                              className="rounded-md p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+                            >
                               <Pencil size={15} />
                             </button>
-                            <button onClick={() => setDeleteTarget(a)} type="button" className="rounded-md p-1.5 text-ink-400 hover:bg-clay-50 hover:text-clay-500">
+                            <button
+                              onClick={() => setDeleteTarget(a)}
+                              type="button"
+                              className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"
+                            >
                               <Trash2 size={15} />
                             </button>
                           </>
                         ) : (
-                          <Button size="sm" variant="accent" disabled={a.status !== "AVAILABLE"} onClick={() => setRequestTarget(a)}>
+                          <Button
+                            size="sm"
+                            variant="accent"
+                            disabled={a.status !== "AVAILABLE"}
+                            onClick={() => setRequestTarget(a)}
+                          >
                             <SendHorizonal size={13} /> Mượn
                           </Button>
                         )}
@@ -279,15 +360,25 @@ export default function AssetsPage() {
           </Table>
         )}
 
-        <div className="flex items-center justify-between border-t border-ink-100 px-4 py-3">
-          <span className="text-xs text-ink-400">
+        <div className="flex items-center justify-between border-t border-slate-100 px-4 py-3">
+          <span className="text-xs text-slate-400">
             Trang {filters.page} / {totalPages}
           </span>
           <div className="flex gap-1.5">
-            <Button size="sm" variant="outline" disabled={filters.page <= 1} onClick={() => setFilters((f) => ({ ...f, page: f.page - 1 }))}>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={filters.page <= 1}
+              onClick={() => setFilters((f) => ({ ...f, page: f.page - 1 }))}
+            >
               <ChevronLeft size={14} />
             </Button>
-            <Button size="sm" variant="outline" disabled={filters.page >= totalPages} onClick={() => setFilters((f) => ({ ...f, page: f.page + 1 }))}>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={filters.page >= totalPages}
+              onClick={() => setFilters((f) => ({ ...f, page: f.page + 1 }))}
+            >
               <ChevronRight size={14} />
             </Button>
           </div>
@@ -320,7 +411,12 @@ export default function AssetsPage() {
             {...register("assetCode")}
           />
           <TextField label="Tên tài sản" required error={errors.name?.message} {...register("name")} />
-          <SelectField label="Loại tài sản" required error={errors.categoryId?.message} {...register("categoryId")}>
+          <SelectField
+            label="Loại tài sản"
+            required
+            error={errors.categoryId?.message}
+            {...register("categoryId")}
+          >
             <option value="">Chọn loại…</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
@@ -364,9 +460,9 @@ export default function AssetsPage() {
         }
       >
         <form onSubmit={onSubmitRequest} className="flex flex-col gap-3.5">
-          <div className="rounded-lg bg-ink-25 p-3 text-sm text-ink-600">
-            Tài sản <AssetTag className="mx-1">{requestTarget?.assetCode}</AssetTag> sẽ được gửi cho người phê duyệt
-            phụ trách quy trình bạn chọn bên dưới.
+          <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
+            Tài sản <AssetTag className="mx-1">{requestTarget?.assetCode}</AssetTag> sẽ được gửi cho người phê
+            duyệt phụ trách quy trình bạn chọn bên dưới.
           </div>
           <TextField
             label="Mã quy trình duyệt (Workflow ID)"
@@ -378,6 +474,8 @@ export default function AssetsPage() {
           />
         </form>
       </Modal>
+
+      <AssetDetailModal assetId={detailId} onClose={() => setDetailId(null)} />
 
       <ConfirmDialog
         open={!!deleteTarget}

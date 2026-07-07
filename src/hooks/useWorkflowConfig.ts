@@ -48,6 +48,25 @@ export function useDepartmentWorkflowsQuery() {
   return useQuery({ queryKey: qk.departmentWorkflows, queryFn: departmentWorkflowsApi.getAll });
 }
 
+// Dùng khi cần lọc theo 1 phòng ban cụ thể (VD: bộ lọc trên trang gán quy trình)
+export function useDepartmentWorkflowsByDepartmentQuery(departmentId: number | null) {
+  return useQuery({
+    queryKey: qk.departmentWorkflowsByDepartment(departmentId ?? 0),
+    queryFn: () => departmentWorkflowsApi.getByDepartmentId(departmentId as number),
+    enabled: departmentId !== null,
+  });
+}
+
+// Dùng trong panel chi tiết quy trình (WorkflowsPage) để biết quy trình đang
+// áp dụng cho những phòng ban nào.
+export function useDepartmentWorkflowsByWorkflowQuery(workflowId: number | null) {
+  return useQuery({
+    queryKey: qk.departmentWorkflowsByWorkflow(workflowId ?? 0),
+    queryFn: () => departmentWorkflowsApi.getByWorkflowId(workflowId as number),
+    enabled: workflowId !== null,
+  });
+}
+
 export function useCreateDepartmentWorkflow() {
   const qc = useQueryClient();
   return useMutation({
@@ -75,6 +94,16 @@ export function useRemoveDepartmentWorkflow() {
 // ---- User <-> Approval Role ----
 export function useUserApprovalRolesQuery() {
   return useQuery({ queryKey: qk.userApprovalRoles, queryFn: userApprovalRolesApi.getAll });
+}
+
+// Dùng cho action "Xem vai trò duyệt" trên trang Người dùng — lọc thẳng
+// theo 1 user thay vì tải toàn bộ danh sách rồi filter phía client.
+export function useUserApprovalRolesByUserQuery(userId: number | null) {
+  return useQuery({
+    queryKey: qk.userApprovalRolesByUser(userId ?? 0),
+    queryFn: () => userApprovalRolesApi.getByUserId(userId as number),
+    enabled: userId !== null,
+  });
 }
 
 export function useCreateUserApprovalRole() {

@@ -1,4 +1,5 @@
 import { useEffect, useState, type MouseEvent } from "react";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Pencil, Trash2, Workflow as WorkflowIcon, ArrowRight } from "lucide-react";
@@ -9,8 +10,13 @@ import { Modal } from "@/components/ui/Modal";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { TextField, TextAreaField, SelectField } from "@/components/ui/FormField";
 import { PageHeader, Spinner, EmptyState } from "@/components/ui/DataDisplay";
-import { workflowHooks, approvalRoleHooks } from "@/hooks/useCatalog";
-import { useApprovalStepsQuery, useCreateApprovalStep, useRemoveApprovalStep } from "@/hooks/useWorkflowConfig";
+import { workflowHooks, approvalRoleHooks, departmentHooks } from "@/hooks/useCatalog";
+import {
+  useApprovalStepsQuery,
+  useCreateApprovalStep,
+  useRemoveApprovalStep,
+  useDepartmentWorkflowsByWorkflowQuery,
+} from "@/hooks/useWorkflowConfig";
 import {
   workflowFormSchema,
   approvalStepFormSchema,
@@ -28,6 +34,8 @@ export default function WorkflowsPage() {
 
   const [selected, setSelected] = useState<WorkflowResponse | null>(null);
   const { data: steps = [], isLoading: stepsLoading } = useApprovalStepsQuery(selected?.id ?? null);
+  const { data: departments = [] } = departmentHooks.useList();
+  const { data: appliedDepartments = [] } = useDepartmentWorkflowsByWorkflowQuery(selected?.id ?? null);
   const createStep = useCreateApprovalStep();
   const removeStep = useRemoveApprovalStep();
 
@@ -43,7 +51,9 @@ export default function WorkflowsPage() {
   useEffect(() => {
     if (formOpen) {
       workflowForm.reset(
-        editing ? { name: editing.name, description: editing.description ?? "" } : { name: "", description: "" }
+        editing
+          ? { name: editing.name, description: editing.description ?? "" }
+          : { name: "", description: "" }
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -65,7 +75,14 @@ export default function WorkflowsPage() {
     if (editing) {
       updateWorkflow.mutate({ id: editing.id, payload }, { onSuccess: () => setFormOpen(false) });
     } else {
-      createWorkflow.mutate(payload, { onSuccess: () => setFormOpen(false) });
+      createWorkflow.mutate(payload, {
+        onSuccess: (created) => {
+          setFormOpen(false);
+          // Chuyển thẳng sang panel cấu hình bước duyệt của quy trình vừa tạo,
+          // để "tạo quy trình" là một luồng liền mạch chứ không phải 2 bước rời rạc.
+          setSelected(created);
+        },
+      });
     }
   });
 
@@ -116,13 +133,22 @@ export default function WorkflowsPage() {
       />
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
-        <Card padded={false} className="lg:col-span-2 overflow-hidden">
+        <Card padded={false} className="overflow-hidden lg:col-span-2">
           {isLoading ? (
             <Spinner />
           ) : workflows.length === 0 ? (
-            <EmptyState title="Chưa có quy trình nào" icon={WorkflowIcon} />
+            <EmptyState
+              title="Chưa có quy trình nào"
+              description="Tạo quy trình đầu tiên để bắt đầu cấu hình các bước duyệt."
+              icon={WorkflowIcon}
+              action={
+                <Button size="sm" onClick={openCreate}>
+                  <Plus size={14} /> Tạo quy trình
+                </Button>
+              }
+            />
           ) : (
-            <div className="divide-y divide-ink-100">
+            <div className="divide-y divide-slate-100">
               {workflows.map((wf) => (
                 <button
                   key={wf.id}
@@ -130,17 +156,17 @@ export default function WorkflowsPage() {
                   type="button"
                   className={cn(
                     "flex w-full items-center justify-between gap-2 px-4 py-3.5 text-left transition-colors",
-                    selected?.id === wf.id ? "bg-brass-50" : "hover:bg-ink-25"
+                    selected?.id === wf.id ? "bg-indigo-50" : "hover:bg-slate-50"
                   )}
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-ink-800">{wf.name}</p>
-                    <p className="truncate text-xs text-ink-400">{wf.description || "Không có mô tả"}</p>
+                    <p className="truncate text-sm font-semibold text-slate-800">{wf.name}</p>
+                    <p className="truncate text-xs text-slate-400">{wf.description || "Không có mô tả"}</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
                     <span
                       onClick={(e) => openEdit(wf, e)}
-                      className="rounded-md p-1.5 text-ink-400 hover:bg-ink-100 hover:text-ink-700"
+                      className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
                     >
                       <Pencil size={14} />
                     </span>
@@ -149,7 +175,7 @@ export default function WorkflowsPage() {
                         e.stopPropagation();
                         setDeleteTarget(wf);
                       }}
-                      className="rounded-md p-1.5 text-ink-400 hover:bg-clay-50 hover:text-clay-500"
+                      className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"
                     >
                       <Trash2 size={14} />
                     </span>
@@ -169,8 +195,33 @@ export default function WorkflowsPage() {
             />
           ) : (
             <div>
-              <p className="mb-1 font-mono text-[11px] uppercase tracking-widest text-brass-600">Các bước duyệt</p>
-              <h3 className="mb-4 font-display text-lg font-semibold text-ink-900">{selected.name}</h3>
+              <p className="mb-1 font-mono text-[11px] uppercase tracking-widest text-indigo-600">
+                Chi tiết quy trình
+              </p>
+              <h3 className="mb-1 text-lg font-semibold text-slate-900">{selected.name}</h3>
+
+              <div className="mb-5 flex flex-wrap items-center gap-1.5">
+                <span className="text-xs text-slate-400">Đang áp dụng cho:</span>
+                {appliedDepartments.length === 0 ? (
+                  <span className="text-xs text-slate-400">chưa có phòng ban nào</span>
+                ) : (
+                  appliedDepartments.map((dw) => {
+                    const dep = departments.find((d) => d.id === dw.departmentId);
+                    return (
+                      <span
+                        key={dw.id}
+                        className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700"
+                      >
+                        {dep?.name ?? `#${dw.departmentId}`}
+                      </span>
+                    );
+                  })
+                )}
+              </div>
+
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Các bước duyệt
+              </p>
 
               {stepsLoading ? (
                 <Spinner />
@@ -179,16 +230,21 @@ export default function WorkflowsPage() {
               ) : (
                 <ol className="mb-5 flex flex-col gap-2">
                   {sortedSteps.map((s) => (
-                    <li key={s.id} className="flex items-center justify-between rounded-lg border border-ink-100 px-3.5 py-2.5">
+                    <li
+                      key={s.id}
+                      className="flex items-center justify-between rounded-lg border border-slate-100 px-3.5 py-2.5"
+                    >
                       <div className="flex items-center gap-3">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-ink-800 font-mono text-xs font-bold text-white">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 font-mono text-xs font-bold text-white">
                           {s.stepOrder}
                         </span>
-                        <span className="text-sm font-medium text-ink-700">{roleName(s.approvalRoleId)}</span>
+                        <span className="text-sm font-medium text-slate-700">
+                          {roleName(s.approvalRoleId)}
+                        </span>
                       </div>
                       <button
                         onClick={() => removeStep.mutate({ id: s.id, workflowId: selected.id })}
-                        className="rounded-md p-1.5 text-ink-400 hover:bg-clay-50 hover:text-clay-500"
+                        className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"
                         type="button"
                       >
                         <Trash2 size={14} />
@@ -198,7 +254,19 @@ export default function WorkflowsPage() {
                 </ol>
               )}
 
-              <form onSubmit={onSubmitStep} className="flex flex-wrap items-end gap-3 rounded-lg bg-ink-25 p-3.5">
+              {roles.length === 0 && (
+                <div className="mb-4 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm text-amber-800">
+                  <span>Chưa có vai trò duyệt nào — cần tạo trước khi thêm bước.</span>
+                  <Link to="/approval-roles" className="font-semibold underline underline-offset-2">
+                    Tạo vai trò duyệt
+                  </Link>
+                </div>
+              )}
+
+              <form
+                onSubmit={onSubmitStep}
+                className="flex flex-wrap items-end gap-3 rounded-lg bg-slate-50 p-3.5"
+              >
                 <TextField
                   label="Thứ tự bước"
                   type="number"
@@ -210,6 +278,7 @@ export default function WorkflowsPage() {
                 <SelectField
                   label="Vai trò duyệt"
                   required
+                  disabled={roles.length === 0}
                   className="w-48"
                   error={stepForm.formState.errors.approvalRoleId?.message}
                   {...stepForm.register("approvalRoleId")}
@@ -221,7 +290,7 @@ export default function WorkflowsPage() {
                     </option>
                   ))}
                 </SelectField>
-                <Button type="submit" loading={createStep.isPending}>
+                <Button type="submit" loading={createStep.isPending} disabled={roles.length === 0}>
                   <Plus size={15} /> Thêm bước
                 </Button>
               </form>

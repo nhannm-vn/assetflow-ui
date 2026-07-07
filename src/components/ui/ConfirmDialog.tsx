@@ -42,13 +42,13 @@ export function ConfirmDialog({
     >
       <div className="flex gap-3">
         <div
-          className={`shrink-0 h-9 w-9 rounded-full flex items-center justify-center ${
-            danger ? "bg-clay-50 text-clay-500" : "bg-brass-50 text-brass-600"
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+            danger ? "bg-red-50 text-red-500" : "bg-indigo-50 text-indigo-600"
           }`}
         >
           <AlertTriangle size={18} />
         </div>
-        <p className="text-sm text-ink-600 leading-relaxed pt-1.5">{description}</p>
+        <p className="pt-1.5 text-sm leading-relaxed text-slate-600">{description}</p>
       </div>
     </Modal>
   );

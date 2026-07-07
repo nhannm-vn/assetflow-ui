@@ -8,8 +8,15 @@ export function useMyRequestsQuery() {
   return useQuery({ queryKey: qk.myRequests, queryFn: assetRequestsApi.getMyRequests });
 }
 
-export function useAdminRequestsQueryLegacy() {
-  return useQuery({ queryKey: qk.adminRequests, queryFn: assetRequestsApi.getAllForAdmin });
+// AssetRequestController.GetById trả bản ghi gốc (có workflowId) — dùng kết
+// hợp với ApprovalController.GetRequestDetailAdmin (có assetName/requesterName
+// join sẵn) để tạo màn chi tiết yêu cầu đầy đủ cho admin, xem RequestDetailModal.tsx.
+export function useAssetRequestByIdQuery(id: number | null) {
+  return useQuery({
+    queryKey: qk.assetRequest(id ?? 0),
+    queryFn: () => assetRequestsApi.getById(id as number),
+    enabled: id !== null,
+  });
 }
 
 export function useCreateAssetRequest() {

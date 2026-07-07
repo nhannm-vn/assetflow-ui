@@ -28,6 +28,7 @@ export interface CrudColumnConfig<TResponse> {
 
 interface EntityHooks<TResponse, TPayload, TId = number> {
   useList: () => UseQueryResult<TResponse[], ApiError>;
+  useById: (id: TId | null) => UseQueryResult<TResponse, ApiError>;
   useCreate: () => UseMutationResult<TResponse, ApiError, TPayload>;
   useUpdate: () => UseMutationResult<TResponse, ApiError, { id: TId; payload: TPayload }>;
   useRemove: () => UseMutationResult<boolean, ApiError, TId>;
@@ -36,7 +37,7 @@ interface EntityHooks<TResponse, TPayload, TId = number> {
 interface EntityCrudPageProps<
   TResponse extends { id: number; name?: string },
   TFormValues extends FieldValues,
-  TPayload
+  TPayload,
 > {
   eyebrow?: string;
   title: string;
@@ -56,7 +57,7 @@ interface EntityCrudPageProps<
 export function EntityCrudPage<
   TResponse extends { id: number; name?: string },
   TFormValues extends FieldValues,
-  TPayload
+  TPayload,
 >({
   eyebrow,
   title,
@@ -80,6 +81,10 @@ export function EntityCrudPage<
   const [editing, setEditing] = useState<TResponse | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TResponse | null>(null);
 
+  // Khi mở form sửa, lấy đúng bản ghi mới nhất từ server thay vì chỉ tin
+  // vào dòng đã cache trong danh sách.
+  const { data: freshEditing } = hooks.useById(editing?.id ?? null);
+
   const {
     register,
     handleSubmit,
@@ -88,9 +93,9 @@ export function EntityCrudPage<
   } = useForm<TFormValues>({ resolver: zodResolver(schema), defaultValues });
 
   useEffect(() => {
-    if (formOpen) reset(editing ? toFormValues(editing) : defaultValues);
+    if (formOpen) reset(editing ? toFormValues(freshEditing ?? editing) : defaultValues);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formOpen, editing]);
+  }, [formOpen, editing, freshEditing]);
 
   function openCreate() {
     setEditing(null);
@@ -117,7 +122,8 @@ export function EntityCrudPage<
   }
 
   const filtered = useMemo(
-    () => (query ? items.filter((it) => JSON.stringify(it).toLowerCase().includes(query.toLowerCase())) : items),
+    () =>
+      query ? items.filter((it) => JSON.stringify(it).toLowerCase().includes(query.toLowerCase())) : items,
     [items, query]
   );
 
@@ -137,9 +143,9 @@ export function EntityCrudPage<
       />
 
       <Card padded={false} className="overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-ink-100 px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-slate-100 px-4 py-3">
           <div className="relative w-full max-w-xs">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-300" />
             <PlainInput
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -147,7 +153,7 @@ export function EntityCrudPage<
               className="h-9 pl-8"
             />
           </div>
-          <span className="ml-auto text-xs text-ink-400">{filtered.length} kết quả</span>
+          <span className="ml-auto text-xs text-slate-400">{filtered.length} kết quả</span>
         </div>
 
         {isLoading ? (
@@ -161,7 +167,15 @@ export function EntityCrudPage<
             <TableSkeleton rows={5} cols={columns.length + 1} />
           </Table>
         ) : filtered.length === 0 ? (
-          <EmptyState title={`Chưa có ${emptyLabel} nào`} description="Bắt đầu bằng cách thêm mục đầu tiên." />
+          <EmptyState
+            title={`Chưa có ${emptyLabel} nào`}
+            description="Bắt đầu bằng cách thêm mục đầu tiên."
+            action={
+              <Button size="sm" onClick={openCreate}>
+                <Plus size={14} /> Thêm {emptyLabel}
+              </Button>
+            }
+          />
         ) : (
           <Table>
             <Thead>
@@ -182,7 +196,7 @@ export function EntityCrudPage<
                     <div className="flex justify-end gap-1">
                       <button
                         onClick={() => openEdit(item)}
-                        className="rounded-md p-1.5 text-ink-400 hover:bg-ink-50 hover:text-ink-700"
+                        className="rounded-md p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-700"
                         title="Sửa"
                         type="button"
                       >
@@ -190,7 +204,7 @@ export function EntityCrudPage<
                       </button>
                       <button
                         onClick={() => setDeleteTarget(item)}
-                        className="rounded-md p-1.5 text-ink-400 hover:bg-clay-50 hover:text-clay-500"
+                        className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-500"
                         title="Xóa"
                         type="button"
                       >
